@@ -1,0 +1,20 @@
+pipeline {
+    agent any // Tells Jenkins to run on the Amazon Linux host machine
+    stages {
+        stage("pod creation") {
+            steps {
+                // Injects the credentials smoothly into the pipeline environment
+                withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
+                    sh 'kubectl apply -f pod.yml'
+                }
+            }
+        }
+        stage("test pod") {
+            steps {
+                withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
+                    sh 'kubectl get pods -o wide'
+                }
+            }
+        }
+    }
+}
