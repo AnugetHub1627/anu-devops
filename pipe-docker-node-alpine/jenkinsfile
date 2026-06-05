@@ -1,12 +1,29 @@
 pipeline {
-  agent {
-     docker { image 'node:16-alpine' }
+  agent none // Do not bind the entire pipeline to a single container
+
+  stages {
+    stage('Test') {
+      agent { 
+        docker { image 'node:16-alpine' } // Spins up node only for testing
+      }
+      steps {
+        sh 'node --version'
+        // Run your application package tests here
+      }
     }
-    stages {
-       stage('test') {
-          steps {
-             sh 'node --version'
-           }
-        }
-    }
+    
+    stage('Build and Deploy Container') {
+      agent any // Drops back down to the host machine where Docker is installed
+      steps {
+        // Clean up the correct container name
+        sh 'docker rm -f node-cont || true' 
+        
+        // Deploy your target image.
+        sh 'docker run -d --name node-cont --publish 9000:80 2573171e0124:cont1'
+        
+        // Verify it is alive on the host
+        sh 'docker ps'
+      }
+    }  
+  }
 }
