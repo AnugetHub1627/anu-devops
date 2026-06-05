@@ -1,11 +1,13 @@
 apiVersion: v1
 kind: Pod
-metadata: 
-  name: jen-pod
-  labels: 
-    dream: job
+metadata:
+  name: my-app-pod
+  labels:
+    app: my-app
 spec:
   containers:
-  - name: cont1
-    image: nginx
-    
+  - name: my-container
+    image: nginx:latest
+    ports:
+    - containerPort: 80
+
