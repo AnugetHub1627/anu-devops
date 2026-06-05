@@ -1,35 +1,18 @@
 pipeline {
-    agent any 
+    agent any // Tells Jenkins to run on the Amazon Linux host machine
     stages {
         stage("pod creation") {
             steps {
-                withCredentials([file(credentialsId: 'k8s-kubeconfig', variable: 'KUBECONFIG')]) {
-                    // This creates a clean pod.yml file directly on the fly, skipping GitHub YAML parser issues
-                    sh '''
-                    cat << 'EOF' > pod.yml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: my-app-pod
-  labels:
-    app: my-app
-spec:
-  containers:
-  - name: my-container
-    image: nginx:latest
-    ports:
-    - containerPort: 80
-EOF
-                    '''
-                    // Deploys the freshly generated clean file
+                // Injects the credentials smoothly into the pipeline environment
+                withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
                     sh 'kubectl apply -f pod.yml'
                 }
             }
         }
         stage("test pod") {
             steps {
-                withCredentials([file(credentialsId: 'k8s-kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh 'kubectl get pods'
+                withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
+                    sh 'kubectl get pods -o wide'
                 }
             }
         }
